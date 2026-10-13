@@ -1,4 +1,4 @@
-﻿using System.Configuration;
+using System.Configuration;
 
 namespace InventoryKamera.Properties
 {
@@ -38,6 +38,14 @@ namespace InventoryKamera.Properties
         private void SettingsSavingEventHandler(object sender, System.ComponentModel.CancelEventArgs e)
         {
             // Add code to handle the SettingsSaving event here.
+        }
+
+        [UserScopedSetting]
+        [DefaultSettingValue("System")]
+        public string AppTheme
+        {
+            get => (string)(this["AppTheme"] ?? "System");
+            set => this["AppTheme"] = value;
         }
     }
 }

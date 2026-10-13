@@ -1,6 +1,8 @@
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
+using InventoryKamera.ui.theme;
 
 namespace InventoryKamera
 {
@@ -22,7 +24,9 @@ namespace InventoryKamera
             SuspendLayout();
             layoutScale = CurrentAutoScaleDimensions.Width / 96F;
             Font = new Font("Segoe UI", 9F);
-            BackColor = Color.FromArgb(240, 240, 240);
+            var palette = ThemeManager.CurrentPalette;
+            BackColor = palette.Background;
+            ForeColor = palette.TextPrimary;
             FormBorderStyle = FormBorderStyle.Sizable;
             MaximizeBox = true;
             MinimumSize = new Size(900, 610);
@@ -103,7 +107,7 @@ namespace InventoryKamera
             {
                 link.AutoSize = true;
                 link.Margin = new Padding(14, 7, 0, 0);
-                link.LinkColor = Color.Blue;
+                link.LinkColor = palette.Link;
                 links.Controls.Add(link);
             }
             Releases_Label.Text = "Latest Releases";
@@ -133,6 +137,7 @@ namespace InventoryKamera
                 MinimumSize = new Size(LayoutPixels(900), LayoutPixels(610));
                 ClientSize = new Size(LayoutPixels(960), LayoutPixels(590));
             }
+            ApplyTheme();
             ResumeLayout(true);
         }
 
@@ -285,7 +290,7 @@ namespace InventoryKamera
             AddCell(navigation, Navigation_Label, 0, 0);
             Navigation_Image.Dock = DockStyle.Fill;
             Navigation_Image.SizeMode = PictureBoxSizeMode.Zoom;
-            Navigation_Image.BackColor = Color.White;
+            Navigation_Image.BackColor = ThemeManager.CurrentPalette.SurfaceBackground;
             Navigation_Image.BorderStyle = BorderStyle.FixedSingle;
             navigation.Controls.Add(Navigation_Image, 0, 1);
             grid.Controls.Add(navigation, 1, 0);
@@ -319,7 +324,7 @@ namespace InventoryKamera
             {
                 picture.Dock = DockStyle.Fill;
                 picture.SizeMode = PictureBoxSizeMode.Zoom;
-                picture.BackColor = Color.White;
+                picture.BackColor = ThemeManager.CurrentPalette.SurfaceBackground;
                 picture.BorderStyle = BorderStyle.FixedSingle;
                 picture.Margin = new Padding(0, 0, 0, 2);
                 characterImages.RowStyles.Add(new RowStyle(SizeType.Percent, 20));
@@ -375,13 +380,14 @@ namespace InventoryKamera
             {
                 picture.SizeMode = PictureBoxSizeMode.Zoom;
                 picture.BorderStyle = BorderStyle.FixedSingle;
-                picture.BackColor = Color.White;
+                picture.BackColor = ThemeManager.CurrentPalette.SurfaceBackground;
             }
             grid.Controls.Add(images, 0, 1);
             output.Dock = DockStyle.Fill;
             output.WordWrap = false;
             output.ScrollBars = ScrollBars.Both;
-            output.BackColor = Color.White;
+            output.BackColor = ThemeManager.CurrentPalette.SurfaceBackground;
+            output.ForeColor = ThemeManager.CurrentPalette.TextPrimary;
             output.Margin = Padding.Empty;
             grid.Controls.Add(output, 1, 1);
             return grid;
@@ -464,7 +470,7 @@ namespace InventoryKamera
 
         private static Label Caption(string text)
         {
-            return new Label { Text = text, AutoSize = true, ForeColor = SystemColors.ControlText };
+            return new Label { Text = text, AutoSize = true, ForeColor = ThemeManager.CurrentPalette.TextSecondary };
         }
 
         private static void AddCell(TableLayoutPanel grid, Control control, int column, int row, int tabIndex = 0, bool stretch = false)
@@ -480,10 +486,92 @@ namespace InventoryKamera
         private void StyleContent(Control control)
         {
             control.Font = Font;
-            control.ForeColor = SystemColors.ControlText;
-            if (!(control is TextBoxBase) && !(control is PictureBox) && !(control is ComboBox))
-                control.BackColor = BackColor;
-            foreach (Control child in control.Controls) StyleContent(child);
+            ThemeManager.ApplyToControl(control, ThemeManager.CurrentPalette);
+        }
+
+        public void ApplyTheme()
+        {
+            var palette = ThemeManager.CurrentPalette;
+            BackColor = palette.Background;
+            ForeColor = palette.TextPrimary;
+            ThemeManager.Apply(this);
+
+            if (Github_Label != null) Github_Label.LinkColor = palette.Link;
+            if (Releases_Label != null) Releases_Label.LinkColor = palette.Link;
+            if (IssuesPage_Label != null) IssuesPage_Label.LinkColor = palette.Link;
+
+            if (Navigation_Image != null) Navigation_Image.BackColor = palette.SurfaceBackground;
+            if (GearPictureBox != null) GearPictureBox.BackColor = palette.SurfaceBackground;
+            if (ArtifactOutput_TextBox != null)
+            {
+                ArtifactOutput_TextBox.BackColor = palette.SurfaceBackground;
+                ArtifactOutput_TextBox.ForeColor = palette.TextPrimary;
+            }
+            if (CharacterOutput_TextBox != null)
+            {
+                CharacterOutput_TextBox.BackColor = palette.SurfaceBackground;
+                CharacterOutput_TextBox.ForeColor = palette.TextPrimary;
+            }
+
+            foreach (var pic in new[] { CharacterName_PictureBox, CharacterLevel_PictureBox,
+                CharacterTalent1_PictureBox, CharacterTalent2_PictureBox, CharacterTalent3_PictureBox })
+            {
+                if (pic != null) pic.BackColor = palette.SurfaceBackground;
+            }
+
+            ApplyLogTheme(palette);
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            ThemeManager.UpdateDwmTitleBar(this);
+        }
+
+        private void InitializeThemeMenu()
+        {
+            var options = menuStrip1.Items.Cast<ToolStripItem>().OfType<ToolStripMenuItem>()
+                .FirstOrDefault(item => item.Text.Replace("&", "").Equals("Options", StringComparison.OrdinalIgnoreCase));
+            if (options == null) return;
+
+            string saved = Properties.Settings.Default.AppTheme;
+            if (Enum.TryParse<AppTheme>(saved, out var initial))
+            {
+                ThemeManager.CurrentMode = initial;
+            }
+
+            var themeMenu = new ToolStripMenuItem("Theme");
+            var systemItem = new ToolStripMenuItem("Follow Windows (System)") { CheckOnClick = true };
+            var darkItem = new ToolStripMenuItem("Dark") { CheckOnClick = true };
+            var lightItem = new ToolStripMenuItem("Light") { CheckOnClick = true };
+
+            void UpdateChecks(AppTheme mode)
+            {
+                systemItem.Checked = mode == AppTheme.System;
+                darkItem.Checked = mode == AppTheme.Dark;
+                lightItem.Checked = mode == AppTheme.Light;
+            }
+
+            void SelectTheme(AppTheme mode)
+            {
+                ThemeManager.CurrentMode = mode;
+                UpdateChecks(mode);
+                Properties.Settings.Default.AppTheme = mode.ToString();
+                Properties.Settings.Default.Save();
+                ApplyTheme();
+            }
+
+            systemItem.Click += (s, e) => SelectTheme(AppTheme.System);
+            darkItem.Click += (s, e) => SelectTheme(AppTheme.Dark);
+            lightItem.Click += (s, e) => SelectTheme(AppTheme.Light);
+
+            UpdateChecks(ThemeManager.CurrentMode);
+
+            themeMenu.DropDownItems.Add(systemItem);
+            themeMenu.DropDownItems.Add(darkItem);
+            themeMenu.DropDownItems.Add(lightItem);
+
+            options.DropDownItems.Add(themeMenu);
         }
     }
 }

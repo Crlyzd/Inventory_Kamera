@@ -1,4 +1,5 @@
 using InventoryKamera.ui;
+using InventoryKamera.ui.theme;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -43,13 +44,14 @@ namespace InventoryKamera
             split.FixedPanel = FixedPanel.Panel2;
             split.Panel2MinSize = Math.Max(120, split.Panel2MinSize);
 
+            var palette = ThemeManager.CurrentPalette;
             var group = new GroupBox
             {
                 Text = "Logs",
                 Dock = DockStyle.Fill,
                 Padding = new Padding(10, 6, 10, 10),
-                BackColor = Color.FromArgb(240, 240, 240),
-                ForeColor = SystemColors.ControlText
+                BackColor = palette.CardBackground,
+                ForeColor = palette.TextPrimary
             };
             var layout = new TableLayoutPanel
             {
@@ -77,7 +79,7 @@ namespace InventoryKamera
                 Text = "Show:",
                 AutoSize = true,
                 Margin = new Padding(0, 5, 8, 0),
-                ForeColor = Color.FromArgb(85, 85, 85)
+                ForeColor = palette.TextSecondary
             });
             logInfoFilter = CreateLogCheckbox("Info", true);
             logWarningFilter = CreateLogCheckbox("Warnings", true);
@@ -96,8 +98,8 @@ namespace InventoryKamera
             {
                 Dock = DockStyle.Fill,
                 Margin = Padding.Empty,
-                BackColor = Color.White,
-                ForeColor = Color.Black,
+                BackColor = palette.LogBackground,
+                ForeColor = palette.LogForeground,
                 Font = new Font("Consolas", 9F),
                 ReadOnly = true,
                 DetectUrls = false,
@@ -141,18 +143,21 @@ namespace InventoryKamera
 
         private static CheckBox CreateLogCheckbox(string text, bool isChecked)
         {
+            var palette = ThemeManager.CurrentPalette;
             return new CheckBox
             {
                 Text = text,
                 AutoSize = true,
                 Checked = isChecked,
                 Margin = new Padding(0, 4, 10, 0),
-                UseVisualStyleBackColor = true
+                ForeColor = palette.TextPrimary,
+                BackColor = Color.Transparent
             };
         }
 
         private static Button CreateLogButton(string text, EventHandler click)
         {
+            var palette = ThemeManager.CurrentPalette;
             var button = new Button
             {
                 Text = text,
@@ -161,8 +166,15 @@ namespace InventoryKamera
                 MinimumSize = new Size(60, 26),
                 Padding = new Padding(6, 0, 6, 0),
                 Margin = new Padding(0, 0, 6, 0),
-                UseVisualStyleBackColor = true
+                UseVisualStyleBackColor = false,
+                FlatStyle = FlatStyle.Flat
             };
+            button.FlatAppearance.BorderSize = 1;
+            button.FlatAppearance.BorderColor = palette.ButtonBorder;
+            button.BackColor = palette.ButtonBack;
+            button.ForeColor = palette.ButtonText;
+            button.FlatAppearance.MouseOverBackColor = palette.ButtonHover;
+            button.FlatAppearance.MouseDownBackColor = palette.ButtonPressed;
             button.Click += click;
             return button;
         }
@@ -290,8 +302,11 @@ namespace InventoryKamera
             int selectionLength = logText.SelectionLength;
             var scrollPosition = new Point();
             LogSendMessage(logText.Handle, 0x04DD, IntPtr.Zero, ref scrollPosition); // EM_GETSCROLLPOS
+            var palette = ThemeManager.CurrentPalette;
             var rtf = new StringBuilder("{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Consolas;}}" +
-                "{\\colortbl;\\red0\\green0\\blue0;\\red138\\green90\\blue0;\\red197\\green15\\blue31;}" +
+                $"\\colortbl;\\red{palette.LogForeground.R}\\green{palette.LogForeground.G}\\blue{palette.LogForeground.B};" +
+                $"\\red{palette.LogWarning.R}\\green{palette.LogWarning.G}\\blue{palette.LogWarning.B};" +
+                $"\\red{palette.LogError.R}\\green{palette.LogError.G}\\blue{palette.LogError.B};}}" +
                 "\\f0\\fs18\\pard\\tx480 ");
             int textLength = 0;
             int latestErrorStart = -1;
@@ -391,5 +406,15 @@ namespace InventoryKamera
 
         [DllImport("user32.dll", EntryPoint = "SendMessage")]
         private static extern IntPtr LogSendMessage(IntPtr handle, int message, IntPtr wParam, ref Point lParam);
+
+        public void ApplyLogTheme(ThemePalette palette)
+        {
+            if (logText != null && !logText.IsDisposed)
+            {
+                logText.BackColor = palette.LogBackground;
+                logText.ForeColor = palette.LogForeground;
+                RenderLogEntries(false);
+            }
+        }
     }
 }

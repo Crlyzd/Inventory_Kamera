@@ -1,4 +1,4 @@
-﻿using InventoryKamera.ui;
+using InventoryKamera.ui;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Newtonsoft.Json;
 using NHotkey;
@@ -60,6 +60,7 @@ namespace InventoryKamera
             InitializeComponent();
             InitializeResponsiveLayout();
             InitializeAchievementMenu();
+            InitializeThemeMenu();
 
             Language_ComboBox.SelectedItem = "ENG";
 

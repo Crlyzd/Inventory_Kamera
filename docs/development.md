@@ -15,15 +15,29 @@ How to build Inventory Kamera from source and work on it comfortably.
 
 Clone, then either:
 
-- Open `InventoryKamera.sln` in Visual Studio, restore happens automatically, press `F5`; or
-- Command line:
+- **Quick Runner Script (Recommended)**:
+  Use `run.bat` or `run.ps1` from PowerShell / Command Prompt:
+
+  ```bat
+  # Development / Live mode: Recompiles incrementally + streams real-time console logs
+  .\run.bat dev
+
+  # Release mode: Builds optimized binaries + automatically generates portable .zip in dist\
+  .\run.bat release
+
+  # Instant Run: Skips build, immediately launches existing executable
+  .\run.bat run
+  ```
+
+  You can also simply double-click `run.bat` in Windows Explorer to open the interactive launcher menu.
+
+- **Manual MSBuild**:
+  From a *Developer Command Prompt for VS 2022*:
 
   ```bat
   msbuild InventoryKamera.sln -t:restore -p:Configuration=Debug -p:Platform="Any CPU"
   msbuild InventoryKamera.sln -p:Configuration=Debug -p:Platform="Any CPU"
   ```
-
-  (`msbuild` from a *Developer Command Prompt for VS 2022*.)
 
 The first run of the built app generates `inventorylists/` by pulling game data from
 [animegamedata2](https://gitlab.com/Dimbreath/animegamedata2) — an internet connection is required

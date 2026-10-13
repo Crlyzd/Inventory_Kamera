@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using InventoryKamera.ui.theme;
 
 namespace InventoryKamera.ui
 {
@@ -21,7 +22,9 @@ namespace InventoryKamera.ui
             AutoScaleMode = AutoScaleMode.Dpi;
             AutoScaleDimensions = new SizeF(96F, 96F);
             Font = new Font("Segoe UI", 9F);
-            BackColor = Color.FromArgb(240, 240, 240);
+            var palette = ThemeManager.CurrentPalette;
+            BackColor = palette.Background;
+            ForeColor = palette.TextPrimary;
             FormBorderStyle = FormBorderStyle.Sizable;
             MaximizeBox = true;
             SizeGripStyle = SizeGripStyle.Auto;
@@ -70,6 +73,7 @@ namespace InventoryKamera.ui
             layout.SetColumnSpan(footer, 2);
 
             Controls.Add(layout);
+            ThemeManager.Apply(this);
             ResumeLayout(true);
         }
 
