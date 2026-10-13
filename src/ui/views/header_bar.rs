@@ -46,7 +46,11 @@ fn render_branding(ui: &mut Ui, state: &AppState, palette: &Palette) {
     ui.add_space(8.0);
 
     let (status_text, status_color) = if state.game_window.detected {
-        (format!("● {}", state.game_window.process_name), palette.success)
+        if state.game_window.is_minimized {
+            (format!("● {} (Minimized)", state.game_window.process_name), palette.warning)
+        } else {
+            (format!("● {}", state.game_window.process_name), palette.success)
+        }
     } else {
         ("○ Waiting for game".to_string(), palette.text_muted)
     };

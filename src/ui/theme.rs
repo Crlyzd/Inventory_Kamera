@@ -14,6 +14,7 @@ pub struct Palette {
     pub accent: Color32,
     pub accent_hover: Color32,
     pub success: Color32,
+    pub warning: Color32,
     pub danger: Color32,
 }
 
@@ -28,6 +29,7 @@ impl Palette {
         accent: Color32::from_rgb(68, 194, 179),
         accent_hover: Color32::from_rgb(86, 218, 203),
         success: Color32::from_rgb(70, 200, 120),
+        warning: Color32::from_rgb(245, 166, 35),
         danger: Color32::from_rgb(235, 87, 87),
     };
 
@@ -41,6 +43,7 @@ impl Palette {
         accent: Color32::from_rgb(46, 150, 138),
         accent_hover: Color32::from_rgb(38, 128, 117),
         success: Color32::from_rgb(40, 167, 69),
+        warning: Color32::from_rgb(217, 130, 0),
         danger: Color32::from_rgb(220, 53, 69),
     };
 }

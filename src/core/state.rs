@@ -90,6 +90,7 @@ pub struct ScanProgress {
 #[derive(Debug, Clone)]
 pub struct GameWindowInfo {
     pub detected: bool,
+    pub is_minimized: bool,
     pub process_name: String,
     pub dimensions: (u32, u32),
 }
@@ -98,6 +99,7 @@ impl Default for GameWindowInfo {
     fn default() -> Self {
         Self {
             detected: false,
+            is_minimized: false,
             process_name: "GenshinImpact.exe".to_string(),
             dimensions: (1920, 1080),
         }

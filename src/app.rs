@@ -41,13 +41,24 @@ impl eframe::App for InventoryKameraApp {
 
         if let Some(target) = crate::automation::find_genshin_window() {
             if !self.state.game_window.detected {
-                self.log_store.info(format!("Found Genshin window: {} ({}x{})", target.title, target.width, target.height));
+                self.log_store.info(format!(
+                    "Attached to Genshin: {} ({}x{}){}",
+                    target.title,
+                    target.width,
+                    target.height,
+                    if target.is_minimized { " [Minimized]" } else { "" }
+                ));
             }
             self.state.game_window.detected = true;
+            self.state.game_window.is_minimized = target.is_minimized;
             self.state.game_window.process_name = target.title;
             self.state.game_window.dimensions = (target.width, target.height);
         } else {
+            if self.state.game_window.detected {
+                self.log_store.info("Genshin game window disconnected");
+            }
             self.state.game_window.detected = false;
+            self.state.game_window.is_minimized = false;
         }
 
         CentralPanel::default()
