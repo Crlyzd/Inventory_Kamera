@@ -371,3 +371,7 @@ MigrationBackup/
 FodyWeavers.xsd
 
 /InventoryKameraWPF/
+
+# Rust / Cargo build artifacts
+/target/
+**/*.rs.bk
