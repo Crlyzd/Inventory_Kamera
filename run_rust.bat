@@ -18,6 +18,7 @@ if %errorlevel% neq 0 (
 )
 
 :: 2. CLI Argument Dispatch
+set INTERACTIVE=0
 if /i "%1"=="dev" goto :DEV
 if /i "%1"=="watch" goto :WATCH
 if /i "%1"=="fast" goto :FAST
@@ -32,6 +33,7 @@ if not "%1"=="" (
 
 :: 3. Interactive Menu (when double-clicked or run with no args)
 :MENU
+set INTERACTIVE=1
 cls
 echo ============================================================
 echo      Inventory Kamera (Rust + egui) Unified Launcher
@@ -165,6 +167,8 @@ echo [OK] Target directory cleaned.
 goto :END
 
 :END
-echo.
-echo Press any key to exit...
-pause >nul
+if "%INTERACTIVE%"=="1" (
+    echo.
+    echo Press any key to exit...
+    pause >nul
+)
